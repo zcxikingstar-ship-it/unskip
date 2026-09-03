@@ -33,7 +33,7 @@ python -m build
 
 ## Quick demo
 
-Review the supplied unified diff and return a failure for an unacknowledged
+Review the supplied Git unified diff and return a failure for an unacknowledged
 medium-or-higher signal:
 
 ```sh
@@ -66,7 +66,7 @@ The three mode-selection flags are mutually exclusive:
 | `unskip [PATH]` | Staged and unstaged tracked changes against `HEAD`, plus eligible untracked test/config files |
 | `unskip [PATH] --staged` | The index only |
 | `unskip [PATH] --base REF` | The `REF...HEAD` comparison |
-| `unskip [PATH] --diff FILE` | A supplied unified diff; `FILE` may be `-` for standard input |
+| `unskip [PATH] --diff FILE` | A supplied Git unified diff; `FILE` may be `-` for standard input |
 
 Use `--no-untracked` with a Git-backed scan to exclude eligible untracked
 files. A supplied diff is read as input rather than regenerated from the
@@ -112,6 +112,8 @@ unskip: allow tolerance-widened -- the public API rounds values to two decimals
 concrete. Acknowledgement does not remove the finding: it remains countable
 and is visible with `--show-acknowledged` and in JSON output. Review the reason
 alongside the code change.
+
+An unscoped `*` is rejected: same-hunk acknowledgements must name one rule.
 
 For a deleted test file, place a path-targeted acknowledgement anywhere in an
 added line of the diff. The path must match the deleted path exactly:
@@ -189,7 +191,8 @@ repos:
   changes outside the supplied diff may limit the evidence available to the
   scanner.
 - Git-backed modes need a usable repository and comparison state. Use
-  `--diff FILE` when the diff is produced by another system.
+  `--diff FILE` when a Git-format diff is produced by another system. Non-empty
+  input without `diff --git` headers is rejected instead of treated as clean.
 - An acknowledgement records a reason for review; it is not an approval,
   authentication mechanism, or correctness claim.
 

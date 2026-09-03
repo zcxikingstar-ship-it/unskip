@@ -32,6 +32,7 @@ attach confidential diffs or credentials.
 - Same-hunk and path-targeted acknowledgements are review metadata, not
   authorization or access-control mechanisms.
 - Git and filesystem permissions still govern what the process can read.
+- Git-backed scans disable external diff drivers and text-conversion helpers.
 - The package declares zero runtime dependencies; packaging tools used to build
   it are separate from the runtime contract.
 

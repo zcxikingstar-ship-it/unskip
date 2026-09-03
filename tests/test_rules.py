@@ -198,6 +198,38 @@ deleted file mode 100644
         )
         self.assertEqual(result.findings[0].rule_id, "invalid-acknowledgement")
 
+    def test_unknown_rule_acknowledgement_is_invalid(self):
+        result = scan(
+            """diff --git a/tests/a_test.py b/tests/a_test.py
+--- a/tests/a_test.py
++++ b/tests/a_test.py
+@@ -1 +1,2 @@
+ pass
++# unskip: allow made-up-rule -- issue #42
+"""
+        )
+        self.assertEqual(result.findings[0].rule_id, "invalid-acknowledgement")
+
+    def test_unscoped_wildcard_does_not_acknowledge_finding(self):
+        result = scan(
+            """diff --git a/tests/a_test.py b/tests/a_test.py
+--- a/tests/a_test.py
++++ b/tests/a_test.py
+@@ -1 +1,3 @@
+ pass
++# unskip: allow * -- issue #42
++pytest.skip("later")
+"""
+        )
+        invalid = next(
+            item
+            for item in result.findings
+            if item.rule_id == "invalid-acknowledgement"
+        )
+        skip = next(item for item in result.findings if item.rule_id == "skip-added")
+        self.assertFalse(invalid.acknowledged)
+        self.assertFalse(skip.acknowledged)
+
     def test_targeted_acknowledgement_can_review_deleted_test(self):
         result = scan(
             """diff --git a/tests/old_test.py b/tests/old_test.py

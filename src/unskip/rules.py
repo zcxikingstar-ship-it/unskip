@@ -46,6 +46,22 @@ ACK_RE = re.compile(
     r"unskip:\s*allow\s+([a-z0-9][a-z0-9-]*|\*)(?:@([^\s]+))?\s+--\s+(.+?)\s*$",
     re.IGNORECASE,
 )
+ACKNOWLEDGEABLE_RULE_IDS = frozenset(
+    {
+        "assertion-commented-out",
+        "assertion-count-dropped",
+        "coverage-exclusion-added",
+        "coverage-threshold-lowered",
+        "failure-mask-added",
+        "focus-added",
+        "matcher-weakened",
+        "skip-added",
+        "snapshot-changed",
+        "test-file-deleted",
+        "timeout-increased",
+        "tolerance-widened",
+    }
+)
 
 
 def _changed_lines(hunk: Hunk, kind: str) -> List[DiffLine]:
@@ -449,9 +465,36 @@ def _acknowledge(file: FileDiff, findings: List[Finding]) -> List[Finding]:
                     )
                 )
                 continue
+            rule_id = match.group(1).lower()
             target_path = match.group(2)
+            if rule_id == "*" and target_path is None:
+                findings.append(
+                    _finding(
+                        "invalid-acknowledgement",
+                        Severity.MEDIUM,
+                        file,
+                        hunk_index,
+                        line,
+                        "A wildcard acknowledgement must target one exact path.",
+                        "Use a concrete rule ID here, or use: unskip: allow *@path -- concrete reason",
+                    )
+                )
+                continue
+            if rule_id != "*" and rule_id not in ACKNOWLEDGEABLE_RULE_IDS:
+                findings.append(
+                    _finding(
+                        "invalid-acknowledgement",
+                        Severity.MEDIUM,
+                        file,
+                        hunk_index,
+                        line,
+                        "An Unskip acknowledgement uses an unknown rule ID.",
+                        "Choose a rule ID from docs/RULES.md.",
+                    )
+                )
+                continue
             if target_path is None:
-                valid[match.group(1).lower()] = match.group(3).strip()
+                valid[rule_id] = match.group(3).strip()
         for finding in findings:
             if finding.path != file.path or finding.hunk_index != hunk_index:
                 continue
@@ -472,14 +515,19 @@ def _apply_targeted_acknowledgements(
                 match = ACK_RE.search(line.text)
                 if not match or match.group(2) is None:
                     continue
+                rule_id = match.group(1).lower()
+                if rule_id != "*" and rule_id not in ACKNOWLEDGEABLE_RULE_IDS:
+                    continue
                 targeted.append(
                     (
-                        match.group(1).lower(),
+                        rule_id,
                         normalized(match.group(2)),
                         match.group(3).strip(),
                     )
                 )
     for finding in findings:
+        if finding.rule_id == "invalid-acknowledgement":
+            continue
         for rule_id, path, reason in targeted:
             if path == normalized(finding.path) and rule_id in {"*", finding.rule_id}:
                 finding.acknowledged = True

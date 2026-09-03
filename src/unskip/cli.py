@@ -26,7 +26,7 @@ def build_parser() -> argparse.ArgumentParser:
     source.add_argument(
         "--diff",
         metavar="FILE",
-        help="scan a unified diff file; use - for stdin",
+        help="scan a Git unified diff file; use - for stdin",
     )
     parser.add_argument(
         "--format",

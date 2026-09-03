@@ -39,6 +39,8 @@ The rule ID must match this catalog exactly. The reason is part of the review
 record; a vague reason or a line outside the finding's hunk does not make the
 finding acknowledged and may produce `invalid-acknowledgement`.
 
+An unscoped wildcard is invalid. Same-hunk acknowledgements must name one rule.
+
 A deleted file has no added line in its own hunk, so it can use a path-targeted
 acknowledgement on any added line in the diff:
 
@@ -46,8 +48,9 @@ acknowledgement on any added line in the diff:
 unskip: allow *@tests/legacy_test.py -- coverage moved to tests/test_api.py
 ```
 
-The path must match the deleted path exactly. Replace `*` with
-`test-file-deleted` to limit the acknowledgement to that rule.
+The path must match the deleted path exactly. A wildcard is allowed only in
+this path-targeted form. Replace `*` with `test-file-deleted` to limit the
+acknowledgement to that rule.
 
 Acknowledged findings remain in the result set. Human-readable output includes
 them when `--show-acknowledged` is supplied, and JSON output keeps them visible

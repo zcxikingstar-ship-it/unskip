@@ -215,6 +215,7 @@ def load_git_diff(
         "core.quotePath=false",
         "diff",
         "--no-ext-diff",
+        "--no-textconv",
         "--no-color",
         "--unified=3",
         "--find-renames",
@@ -257,4 +258,9 @@ def load_diff_file(filename: str) -> Tuple[str, List[FileDiff], List[str]]:
                 "could not read diff file {}: {}".format(filename, exc)
             ) from exc
         source = str(target)
-    return source, parse_unified_diff(text), []
+    files = parse_unified_diff(text)
+    if text.strip() and not files:
+        raise InputError(
+            "unsupported diff format: expected Git unified diff with 'diff --git' headers"
+        )
+    return source, files, []

@@ -16,5 +16,7 @@ Initial release.
   exit codes.
 - Same-hunk and deleted-file path acknowledgements with concrete review
   reasons.
+- Git text-conversion safeguards and explicit rejection of unsupported
+  non-Git diff input.
 - Python 3.9+ packaging with zero runtime dependencies and an `unskip` console
   script.
